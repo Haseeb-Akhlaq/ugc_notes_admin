@@ -1,6 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:ugc_notes_admin/providers/addNewCourseProvider.dart';
 import 'package:ugc_notes_admin/screens/UnitsScreen.dart';
 
 class AddNewCourseNameAndIdScreen extends StatefulWidget {
@@ -15,8 +14,19 @@ class _AddNewCourseNameAndIdScreenState
 
   String courseName;
   String courseId;
+  String examIn;
 
-  saveData() {
+  setSearchParam(String courseName) {
+    List<String> caseSearchList = [];
+    String temp = "";
+    for (int i = 0; i < courseName.length; i++) {
+      temp = temp + courseName[i];
+      caseSearchList.add(temp);
+    }
+    return caseSearchList;
+  }
+
+  saveData() async {
     bool isValid = _formKey.currentState.validate();
 
     if (!isValid) {
@@ -25,11 +35,41 @@ class _AddNewCourseNameAndIdScreenState
 
     _formKey.currentState.save();
 
-    Provider.of<AddNewCourseProvider>(context, listen: false)
-        .setNewCourseNameAndId(courseName, courseId);
+    final coursePath =
+        FirebaseFirestore.instance.collection('AllCourses').doc(courseId);
 
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => UnitsScreen()));
+    final courseData = await coursePath.get();
+
+    if (courseData.exists) {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => UnitsScreen(
+                    courseId: courseId,
+                  )));
+    } else {
+      List<String> searchParameters = setSearchParam(courseName);
+
+      await FirebaseFirestore.instance
+          .collection('AllCourses')
+          .doc(courseId)
+          .set({
+        'courseName': courseName,
+        'courseId': courseId,
+        'totalCards': '0',
+        'totalUnits': '0',
+        'totalTopics': '0',
+        'examIn': examIn,
+        'nameParameters': searchParameters,
+      });
+
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => UnitsScreen(
+                    courseId: courseId,
+                  )));
+    }
   }
 
   @override
@@ -129,6 +169,36 @@ class _AddNewCourseNameAndIdScreenState
                       ),
                       SizedBox(
                         height: 40,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 20.0, right: 10, top: 5, bottom: 5),
+                          child: TextFormField(
+                            textAlign: TextAlign.left,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              hintText: 'Exams In Days',
+                              border: InputBorder.none,
+                            ),
+                            onSaved: (value) {
+                              examIn = value;
+                            },
+                            validator: (String value) {
+                              if (value.isEmpty) {
+                                return 'Please enter a day';
+                              }
+                              if (value.length > 4) {
+                                return 'Exam must be in less than 1000 days';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
                       ),
                     ],
                   ),

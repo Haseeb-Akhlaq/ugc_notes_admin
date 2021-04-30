@@ -5,18 +5,17 @@ import 'package:ugc_notes_admin/Models/topicModel.dart';
 import 'package:ugc_notes_admin/Models/unitModel.dart';
 
 class AddNewCourseProvider extends ChangeNotifier {
-  CourseUnits newUnit = CourseUnits(
-      unitId: '1',
-      numberOfCards: '3',
-      numberOfTopics: '2',
-      unitName: 'Default',
-      allTopics: []);
+  CourseUnitModel newUnit = CourseUnitModel(
+    unitId: '1',
+    numberOfCards: '3',
+    numberOfTopics: '2',
+    unitName: 'Default',
+  );
 
   CourseTopics newTopic = CourseTopics(
     topicId: '1',
     topicName: 'default',
     numberOfCards: '2',
-    topicCard: [],
   );
 
   CardModel newCard =
@@ -47,12 +46,11 @@ class AddNewCourseProvider extends ChangeNotifier {
   }
 
   setNewTopicName(String name) {
-    newTopic.topicName = name;
-    newTopic.topicId = (newUnit.allTopics.length).toString();
+    // newTopic.topicName = name;
+    // newTopic.topicId = (newUnit.allTopics.length).toString();
   }
 
   addAllCards(List cards) {
-    newTopic.topicCard = cards;
     newTopic.numberOfCards = cards.length.toString();
   }
 }

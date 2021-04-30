@@ -1,18 +1,25 @@
-import 'package:ugc_notes_admin/Models/topicModel.dart';
-
-class CourseUnits {
+class CourseUnitModel {
   String unitId;
+  String courseId;
   String unitName;
   String numberOfTopics;
   String numberOfCards;
-  List<CourseTopics> allTopics;
 
-  CourseUnits(
-      {this.numberOfTopics,
-      this.numberOfCards,
-      this.unitId,
-      this.unitName,
-      this.allTopics});
+  CourseUnitModel({
+    this.numberOfTopics,
+    this.courseId,
+    this.numberOfCards,
+    this.unitId,
+    this.unitName,
+  });
+
+  CourseUnitModel.fromMap(Map<dynamic, dynamic> map) {
+    this.courseId = map['courseId'];
+    this.unitId = map['unitId'] ?? '';
+    this.unitName = map['unitName'] ?? '';
+    this.numberOfCards = map['numberOfCards'] ?? '';
+    this.numberOfTopics = map['numberOfTopics'] ?? '';
+  }
 
   Map<dynamic, dynamic> toJson() {
     return {

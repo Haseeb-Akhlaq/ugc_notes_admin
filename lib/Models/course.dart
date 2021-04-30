@@ -7,7 +7,7 @@ class Course {
   String numberOfTopics;
   String numberOfCards;
   String daysLeftToExams;
-  List<CourseUnits> allUnits;
+  List<CourseUnitModel> allUnits;
 
   Course(
       {this.courseId,
