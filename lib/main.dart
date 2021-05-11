@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:ugc_notes_admin/providers/addNewCourseProvider.dart';
 import 'package:ugc_notes_admin/screens/UnitsScreen.dart';
 import 'package:ugc_notes_admin/screens/addCoursesNameScreen.dart';
+import 'package:ugc_notes_admin/screens/changeExamsDateScreen.dart';
+import 'package:ugc_notes_admin/widgets/drawer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        drawer: ScreenDrawer(),
         appBar: AppBar(
           centerTitle: true,
           title: Text('Add courses'),
@@ -102,7 +105,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Course Code: ${coursesData[index]['courseId']}',
+                                      'Course ID: ${coursesData[index]['courseId']}',
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Text(
+                                      'Course Code: ${coursesData[index]['courseCode']}',
                                       style: TextStyle(fontSize: 20),
                                     ),
                                     SizedBox(
@@ -114,9 +124,33 @@ class _MyHomePageState extends State<MyHomePage> {
                                     SizedBox(
                                       height: 10,
                                     ),
-                                    Text(
-                                        'Exams In: ${coursesData[index]['examIn']} Days',
-                                        style: TextStyle(fontSize: 20)),
+                                    Row(
+                                      children: [
+                                        Text(
+                                            'Exams In: ${coursesData[index]['examIn']} Days',
+                                            style: TextStyle(fontSize: 20)),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        TextButton(
+                                          onPressed: () async {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ChangeExamsDateScreen(
+                                                          previousDate:
+                                                              coursesData[index]
+                                                                  ['examIn'],
+                                                          courseId:
+                                                              coursesData[index]
+                                                                  ['courseId'],
+                                                        )));
+                                          },
+                                          child: Text('Change'),
+                                        ),
+                                      ],
+                                    ),
                                     SizedBox(
                                       height: 10,
                                     ),

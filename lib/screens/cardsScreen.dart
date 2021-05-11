@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:ugc_notes_admin/Models/cardModel.dart';
 import 'package:ugc_notes_admin/Models/topicModel.dart';
 
@@ -12,10 +13,8 @@ class CardsScreen extends StatefulWidget {
 }
 
 class _CardsScreenState extends State<CardsScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String cardContent;
-  List<CardModel> allCards = [];
   bool isLoading = false;
+  List<CardModel> allCards = [];
 
   incrementCardsInCourse() async {
     final unitData = await FirebaseFirestore.instance
@@ -53,21 +52,16 @@ class _CardsScreenState extends State<CardsScreen> {
     });
   }
 
-  saveCards() async {
-    bool isValid = _formKey.currentState.validate();
-
-    if (!isValid) {
-      return;
-    }
-
-    _formKey.currentState.save();
-
+  saveCards(
+    String cardPic,
+    String cardHeading1,
+    String cardContent1,
+    String cardHeading2,
+    String cardContent2,
+  ) async {
     CardModel cardModel = CardModel(
       cardId: (allCards.length + 1).toString(),
-      cardContent: cardContent,
     );
-
-    print('ddddddddddddddddddddddddddddddddddddd');
 
     setState(() {
       isLoading = true;
@@ -84,8 +78,13 @@ class _CardsScreenState extends State<CardsScreen> {
         .set({
       'unitId': widget.courseTopics.unitId,
       'courseId': widget.courseTopics.courseId,
+      'topicId': widget.courseTopics.topicId,
       'cardId': cardModel.cardId,
-      'cardContent': cardModel.cardContent,
+      'imageUrl': cardPic,
+      'cardHeading1': cardHeading1,
+      'cardContent1': cardContent1,
+      'cardHeading2': cardHeading2,
+      'cardContent2': cardContent2,
     });
 
     await incrementCardsInUnits();
@@ -150,140 +149,68 @@ class _CardsScreenState extends State<CardsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Cards For ${widget.courseTopics.topicName}'),
-        actions: [
-          IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (_) {
-                    return GestureDetector(
-                      onTap: () {},
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Enter Card Content'),
-                                      SizedBox(
-                                        height: 20,
-                                      ),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[200],
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 20.0,
-                                              right: 10,
-                                              top: 5,
-                                              bottom: 5),
-                                          child: TextFormField(
-                                            textAlign: TextAlign.left,
-                                            maxLines: 10,
-                                            decoration: InputDecoration(
-                                              hintText: 'Card Content',
-                                              border: InputBorder.none,
-                                            ),
-                                            onSaved: (value) {
-                                              cardContent = value;
-                                            },
-                                            validator: (String value) {
-                                              if (value.isEmpty) {
-                                                return 'Please enter valid Card Content';
-                                              }
-                                              if (value.length < 4) {
-                                                return 'Please Enter Content greater than 4 characters';
-                                              }
-                                              return null;
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  saveCards();
-                                  Navigator.pop(context);
-                                },
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.8,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: Colors.blue,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Text(
-                                      'Add Card',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 17,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              }),
-        ],
+        // actions: [
+        //   IconButton(
+        //       icon: Icon(Icons.add),
+        //       onPressed: () {
+        //         Navigator.push(
+        //           context,
+        //           MaterialPageRoute(
+        //             builder: (context) => EnterCardData(
+        //               saveData: saveCards,
+        //             ),
+        //           ),
+        //         );
+        //       }),
+        // ],
       ),
       body: isLoading
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : ListView.builder(
-              itemCount: allCards.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    // Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //         builder: (context) => CardsScreen(
-                    //           courseTopics:allTopics[index],
-                    //         )));
+          : Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: ListView.separated(
+                  separatorBuilder: (context, index) {
+                    return SizedBox(height: 15);
                   },
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(25.0),
-                      child: Container(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Card No:   ${allCards[index].cardId}'),
-                            SizedBox(
-                              height: 20,
+                  itemCount: allCards.length,
+                  itemBuilder: (context, index) {
+                    final htmlData = allCards[index].cardContent;
+                    return GestureDetector(
+                      onTap: () {},
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(25.0),
+                          child: Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Card No:   ${allCards[index].cardId}'),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Html(
+                                  data: htmlData,
+                                  onLinkTap: (url) {
+                                    print("Opening $url...");
+                                  },
+                                  onImageTap: (src) {
+                                    print(src);
+                                  },
+                                  onImageError: (exception, stackTrace) {
+                                    print(exception);
+                                  },
+                                ),
+                              ],
                             ),
-                            Text(allCards[index].cardContent),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              }),
+                    );
+                  }),
+            ),
     );
   }
 }

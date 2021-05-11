@@ -1,5 +1,12 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
+import 'package:toast/toast.dart';
 import 'package:ugc_notes_admin/screens/UnitsScreen.dart';
 
 class AddNewCourseNameAndIdScreen extends StatefulWidget {
@@ -13,8 +20,53 @@ class _AddNewCourseNameAndIdScreenState
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String courseName;
-  String courseId;
+  String courseCode = '';
   String examIn;
+  String imageUrl = '';
+  String courseId = '';
+
+  bool isUploading = false;
+
+  File _image;
+  final picker = ImagePicker();
+
+  Future getImage() async {
+    final pickedFile = await picker.getImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        isUploading = true;
+      });
+
+      _image = File(pickedFile.path);
+      String fileName = basename(pickedFile.path);
+
+      final firebaseStorageRef =
+          FirebaseStorage.instance.ref().child('courseThumbnail/$fileName');
+
+      final uploadTask = firebaseStorageRef.putFile(_image);
+
+      final taskSnapshot =
+          await uploadTask.whenComplete(() => print('image uploaded'));
+
+      uploadTask.asStream().listen((event) {
+        print('wqdddddd');
+        print(event.bytesTransferred / event.totalBytes);
+      });
+
+      taskSnapshot.ref.getDownloadURL().then(
+        (value) {
+          setState(() {
+            imageUrl = value;
+            print("Done: $value");
+            isUploading = false;
+          });
+        },
+      );
+    } else {
+      print('No image selected.');
+    }
+  }
 
   setSearchParam(String courseName) {
     List<String> caseSearchList = [];
@@ -26,7 +78,7 @@ class _AddNewCourseNameAndIdScreenState
     return caseSearchList;
   }
 
-  saveData() async {
+  saveData(BuildContext context) async {
     bool isValid = _formKey.currentState.validate();
 
     if (!isValid) {
@@ -56,20 +108,31 @@ class _AddNewCourseNameAndIdScreenState
           .set({
         'courseName': courseName,
         'courseId': courseId,
+        'courseCode': courseCode,
         'totalCards': '0',
         'totalUnits': '0',
         'totalTopics': '0',
         'examIn': examIn,
+        'coursePic': imageUrl,
         'nameParameters': searchParameters,
       });
 
-      Navigator.push(
+      Navigator.pushReplacement(
           context,
           MaterialPageRoute(
               builder: (context) => UnitsScreen(
                     courseId: courseId,
                   )));
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Random random = new Random();
+    var code = random.nextInt(90000000) + 10000000;
+    courseId = code.toString();
+    print(courseId);
   }
 
   @override
@@ -125,6 +188,50 @@ class _AddNewCourseNameAndIdScreenState
                       SizedBox(
                         height: 40,
                       ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: 130,
+                              decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.black)),
+                              child: isUploading
+                                  ? CircularProgressIndicator()
+                                  : _image == null
+                                      ? Text('No image')
+                                      : Image.file(
+                                          _image,
+                                          fit: BoxFit.contain,
+                                        ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              getImage();
+                            },
+                            child: TextButton.icon(
+                              icon: Icon(
+                                Icons.photo,
+                                color: Colors.blue,
+                              ),
+                              label: Text(
+                                'Pick Image For Course',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 40,
+                      ),
                       Text('Enter 8 digits Course Code '),
                       SizedBox(
                         height: 5,
@@ -153,14 +260,14 @@ class _AddNewCourseNameAndIdScreenState
                               border: InputBorder.none,
                             ),
                             onSaved: (value) {
-                              courseId = value;
+                              courseCode = value;
                             },
                             validator: (String value) {
                               if (value.isEmpty) {
                                 return 'Please enter a valid Code';
                               }
-                              if (value.length != 8) {
-                                return 'Code must be 8 characters long';
+                              if (value.length > 3) {
+                                return 'Code must be less than 4 digits';
                               }
                               return null;
                             },
@@ -206,7 +313,11 @@ class _AddNewCourseNameAndIdScreenState
               ),
               GestureDetector(
                 onTap: () {
-                  saveData();
+                  if (imageUrl == '') {
+                    Toast.show("Please Select a picture", context,
+                        duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                  }
+                  saveData(context);
                 },
                 child: Container(
                   alignment: Alignment.center,

@@ -18,9 +18,6 @@ class AddNewCourseProvider extends ChangeNotifier {
     numberOfCards: '2',
   );
 
-  CardModel newCard =
-      CardModel(cardId: '1', cardContent: 'Hi This is Topic 1 and');
-
   Course newCourse = Course(
     courseId: '1',
     courseName: 'Default',
