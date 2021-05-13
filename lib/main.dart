@@ -127,8 +127,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     Row(
                                       children: [
                                         Text(
-                                            'Exams In: ${coursesData[index]['examIn']} Days',
-                                            style: TextStyle(fontSize: 20)),
+                                            'Exams In: ${coursesData[index]['examDate']}',
+                                            style: TextStyle(fontSize: 18)),
                                         SizedBox(
                                           width: 10,
                                         ),
@@ -141,7 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                         ChangeExamsDateScreen(
                                                           previousDate:
                                                               coursesData[index]
-                                                                  ['examIn'],
+                                                                  ['examDate'],
                                                           courseId:
                                                               coursesData[index]
                                                                   ['courseId'],

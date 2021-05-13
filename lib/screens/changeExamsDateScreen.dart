@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:toast/toast.dart';
+import 'package:intl/intl.dart';
 
 class ChangeExamsDateScreen extends StatefulWidget {
   final String previousDate;
@@ -13,17 +13,17 @@ class ChangeExamsDateScreen extends StatefulWidget {
 }
 
 class _ChangeExamsDateScreenState extends State<ChangeExamsDateScreen> {
-  TextEditingController dateController = TextEditingController();
+  String examDate = '';
 
   setPreviousDate() {
-    dateController.text = widget.previousDate;
+    examDate = widget.previousDate;
   }
 
   updateDate(context) async {
     await FirebaseFirestore.instance
         .collection('AllCourses')
         .doc(widget.courseId)
-        .update({'examIn': dateController.text});
+        .update({'examDate': examDate});
 
     Navigator.of(context).pop(true);
   }
@@ -46,38 +46,45 @@ class _ChangeExamsDateScreenState extends State<ChangeExamsDateScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Expanded(
-              child: Row(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('Change Exam Date To :'),
                   SizedBox(
                     width: 20,
                   ),
-                  Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                      color: Colors.black,
-                    )),
-                    height: 80,
-                    width: 80,
-                    child: Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextField(
-                        controller: dateController,
-                        decoration: InputDecoration(border: InputBorder.none),
-                      ),
+                  TextButton(
+                    onPressed: () async {
+                      DateTime pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2100),
+                      );
+
+                      setState(() {
+                        examDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+                      });
+                    },
+                    child: Text(
+                      'Select Exam Date',
+                      style: TextStyle(color: Colors.blue),
                     ),
-                  )
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Exam Will Be On:  ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(examDate),
+                    ],
+                  ),
                 ],
               ),
             ),
             GestureDetector(
               onTap: () {
-                if (dateController.text == '') {
-                  Toast.show("Please Select a Valid Date", context,
-                      duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-                  return;
-                }
                 updateDate(context);
               },
               child: Container(

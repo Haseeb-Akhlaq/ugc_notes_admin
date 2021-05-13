@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:toast/toast.dart';
 import 'package:ugc_notes_admin/screens/UnitsScreen.dart';
@@ -21,7 +22,8 @@ class _AddNewCourseNameAndIdScreenState
 
   String courseName;
   String courseCode = '';
-  String examIn;
+  String examDate =
+      DateFormat('yyyy-MM-dd').format(DateTime.now().add(Duration(days: 2)));
   String imageUrl = '';
   String courseId = '';
 
@@ -112,7 +114,7 @@ class _AddNewCourseNameAndIdScreenState
         'totalCards': '0',
         'totalUnits': '0',
         'totalTopics': '0',
-        'examIn': examIn,
+        'examDate': examDate,
         'coursePic': imageUrl,
         'nameParameters': searchParameters,
       });
@@ -232,11 +234,7 @@ class _AddNewCourseNameAndIdScreenState
                       SizedBox(
                         height: 40,
                       ),
-                      Text('Enter 8 digits Course Code '),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Text('Every course must have unique code'),
+                      Text('Enter 3 digits Course Code '),
                       SizedBox(
                         height: 5,
                       ),
@@ -277,35 +275,33 @@ class _AddNewCourseNameAndIdScreenState
                       SizedBox(
                         height: 40,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(5),
+                      TextButton(
+                        onPressed: () async {
+                          DateTime pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2100),
+                          );
+
+                          setState(() {
+                            examDate =
+                                DateFormat('yyyy-MM-dd').format(pickedDate);
+                          });
+                        },
+                        child: Text(
+                          'Select Exam Date',
+                          style: TextStyle(color: Colors.blue),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 20.0, right: 10, top: 5, bottom: 5),
-                          child: TextFormField(
-                            textAlign: TextAlign.left,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: 'Exams In Days',
-                              border: InputBorder.none,
-                            ),
-                            onSaved: (value) {
-                              examIn = value;
-                            },
-                            validator: (String value) {
-                              if (value.isEmpty) {
-                                return 'Please enter a day';
-                              }
-                              if (value.length > 4) {
-                                return 'Exam must be in less than 1000 days';
-                              }
-                              return null;
-                            },
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            'Exam Will Be On:  ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                        ),
+                          Text(examDate),
+                        ],
                       ),
                     ],
                   ),
